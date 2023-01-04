@@ -30,3 +30,4 @@
 *.exe
 *.out
 *.app
+build_x64_VS2022
