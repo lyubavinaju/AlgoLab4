@@ -18,7 +18,7 @@ private:
 	BufferElement* buffer = nullptr;
 	size_t capacity;
 	size_t size;
-	const size_t INIT_CAPACITY = 32;
+	const size_t INIT_CAPACITY = 256;
 
 public:
 	OsStorage() {
@@ -27,7 +27,7 @@ public:
 		assert(buffer == nullptr && "Already initialized");
 		size = 0;
 		capacity = INIT_CAPACITY;
-		buffer = (BufferElement*)VirtualAlloc(NULL, capacity, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+		buffer = (BufferElement*)VirtualAlloc(NULL, capacity * sizeof(BufferElement), MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 	}
 	virtual void destroy() {
 		assert(buffer != nullptr && "Allocator was not initialized or already destroyed.");
@@ -42,10 +42,11 @@ public:
 		void* res = VirtualAlloc(NULL, _size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 		if (size == capacity) {
 			capacity *= 2;
-			BufferElement* newBuffer = (BufferElement*)VirtualAlloc(NULL, capacity, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+			BufferElement* newBuffer = (BufferElement*)VirtualAlloc(NULL, sizeof(BufferElement) * capacity, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 			for (size_t i = 0; i < size; i++) {
 				new (newBuffer + i) BufferElement(buffer[i].pointer, buffer[i].size);
 			}
+			VirtualFree((void*)buffer, 0, MEM_RELEASE);
 			buffer = newBuffer;
 		}
 		new (buffer + size) BufferElement(res, _size);
